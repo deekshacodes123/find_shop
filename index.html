@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Nearby Shops Finder</title>
+</head>
+<body style="margin:0;font-family:Arial;background:#f3f6f8;">
+
+<div style="background:#1e7f5c;color:white;padding:20px;text-align:center;">
+  <h2>🗺️ Nearby Shops Finder</h2>
+  <p style="font-size:13px;">Search shops by place & distance</p>
+</div>
+
+<div style="max-width:520px;margin:40px auto;background:white;padding:25px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+
+  <label><b>Search</b></label><br><br>
+  <input id="query" placeholder="medical shop near Gopalpura Bypass Jaipur"
+    style="width:100%;padding:12px;border-radius:6px;border:1px solid #ccc;">
+
+  <br><br>
+
+  <label><b>Distance (km)</b></label><br><br>
+  <input id="distance" type="number" value="4"
+    style="width:100%;padding:12px;border-radius:6px;border:1px solid #ccc;">
+
+  <br><br>
+
+  <button onclick="find()"
+    style="width:100%;padding:12px;background:#1e7f5c;color:white;border:none;border-radius:6px;font-size:15px;">
+    🔍 Find Shops
+  </button>
+
+  <p id="status" style="margin-top:15px;text-align:center;"></p>
+  <div id="results"></div>
+</div>
+
+<script>
+function find(){
+  const q = document.getElementById("query").value;
+  const d = document.getElementById("distance").value;
+
+  document.getElementById("status").innerText = "Processing...";
+  document.getElementById("results").innerHTML = "";
+
+  fetch("http://127.0.0.1:5000/search", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ searchQuery:q, distanceKm:d })
+  })
+  .then(r=>r.json())
+  .then(data=>{
+    if(data.error){
+      document.getElementById("status").innerText = data.error;
+      return;
+    }
+
+    document.getElementById("status").innerText =
+      `Found ${data.count} shops near ${data.placeUsed}`;
+
+    data.shops.forEach(s=>{
+      document.getElementById("results").innerHTML += `
+        <div style="margin-top:10px;padding:10px;background:#f9f9f9;border-radius:6px;">
+          <b>${s.shopName}</b><br>
+          Type: ${s.shopType}<br>
+          ${s.address}
+        </div>`;
+    });
+  })
+  .catch(()=>{
+    document.getElementById("status").innerText = "Server error";
+  });
+}
+</script>
+
+</body>
+</html>
